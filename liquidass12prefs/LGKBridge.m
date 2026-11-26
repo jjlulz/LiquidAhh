@@ -7,11 +7,6 @@ static NSString *const kNoLGK   = @"/var/mobile/liquidass12-nolgk";            /
 static NSString *const kMarker  = @"/var/mobile/liquidass12-lgk-loading";      // present = last attempt did not survive
 static NSString *const kLogPath = @"/var/mobile/liquidass12-prefs-debug.txt";
 
-@interface LGKAnchor : NSObject
-@end
-@implementation LGKAnchor
-@end
-
 static void LGKLog(NSString *message) {
     NSString *line = [message stringByAppendingString:@"\n"];
     NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:kLogPath];
@@ -30,7 +25,12 @@ BOOL LGKAvailable(void) {
         @try {
             NSFileManager *fm = NSFileManager.defaultManager;
             if ([fm fileExistsAtPath:kNoLGK]) { LGKLog(@"nolgk flag present; using fallback controls"); return; }
-            if ([fm fileExistsAtPath:kMarker]) {
+
+            NSString *bundleID = NSBundle.mainBundle.bundleIdentifier;
+            BOOL trackCrash = [bundleID isEqualToString:@"com.apple.Preferences"] ||
+                              [bundleID isEqualToString:@"com.apple.springboard"];
+
+            if (trackCrash && [fm fileExistsAtPath:kMarker]) {
                 // the previous attempt to use LiquidGlassKit never reached the "survived" mark
                 [@"previous attempt crashed\n" writeToFile:kNoLGK atomically:YES encoding:NSUTF8StringEncoding error:nil];
                 [fm removeItemAtPath:kMarker error:nil];
@@ -38,33 +38,40 @@ BOOL LGKAvailable(void) {
                 return;
             }
 
-            NSString *dir = [[NSBundle bundleForClass:LGKAnchor.class].bundlePath stringByAppendingPathComponent:@"LGK"];
+            NSString *dir = @"/Library/PreferenceBundles/LiquidAss12Prefs.bundle/LGK";
             NSString *dylib = [dir stringByAppendingPathComponent:@"LGKCore.dylib"];
             if (![fm fileExistsAtPath:dylib]) { LGKLog(@"LGKCore.dylib not in package; using fallback controls"); return; }
 
-            [@"loading\n" writeToFile:kMarker atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            if (trackCrash) {
+                [@"loading\n" writeToFile:kMarker atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            }
             void *handle = dlopen(dylib.fileSystemRepresentation, RTLD_NOW);
             if (!handle) {
                 LGKLog([NSString stringWithFormat:@"dlopen failed: %s", dlerror()]);
-                [fm removeItemAtPath:kMarker error:nil];
+                if (trackCrash) [fm removeItemAtPath:kMarker error:nil];
                 return;
             }
             Class core = NSClassFromString(@"LGKCore");
             if (!core || !NSClassFromString(@"LGKSwitch") || !NSClassFromString(@"LGKSlider")) {
                 LGKLog(@"LGK classes missing after dlopen");
-                [fm removeItemAtPath:kMarker error:nil];
+                if (trackCrash) [fm removeItemAtPath:kMarker error:nil];
                 return;
             }
             ((void (*)(Class, SEL, NSString *))objc_msgSend)(core, NSSelectorFromString(@"configureWithResourceDirectory:"), dir);
             BOOL ok = ((BOOL (*)(Class, SEL))objc_msgSend)(core, NSSelectorFromString(@"isAvailable"));
             LGKLog([NSString stringWithFormat:@"LGK available=%d", ok]);
-            if (!ok) { [fm removeItemAtPath:kMarker error:nil]; return; }
+            if (!ok) {
+                if (trackCrash) [fm removeItemAtPath:kMarker error:nil];
+                return;
+            }
             available = YES;
 
-            // if Settings is still alive 2 s after the glass views started, this attempt is considered safe
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-                [NSFileManager.defaultManager removeItemAtPath:kMarker error:nil];
-            });
+            if (trackCrash) {
+                // if Settings/SpringBoard is still alive 2 s after the glass views started, this attempt is considered safe
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                    [NSFileManager.defaultManager removeItemAtPath:kMarker error:nil];
+                });
+            }
         } @catch (NSException *exception) {
             LGKLog([NSString stringWithFormat:@"exception: %@ %@", exception.name, exception.reason]);
             [NSFileManager.defaultManager removeItemAtPath:kMarker error:nil];
@@ -84,3 +91,4 @@ UIControl<LGKSliderLike> *LGKMakeSlider(void) {
     Class cls = NSClassFromString(@"LGKSlider");
     return cls ? (UIControl<LGKSliderLike> *)[[cls alloc] initWithFrame:CGRectZero] : nil;
 }
+
