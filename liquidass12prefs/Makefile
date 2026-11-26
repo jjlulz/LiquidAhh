@@ -6,7 +6,7 @@ include $(THEOS)/makefiles/common.mk
 BUNDLE_NAME = LiquidAss12Prefs
 
 LiquidAss12Prefs_FILES = LGRootListController.m LGGlassSwitchCell.m LGGlassSliderCell.m LGKBridge.m
-LiquidAss12Prefs_FRAMEWORKS = UIKit QuartzCore
+LiquidAss12Prefs_FRAMEWORKS = UIKit QuartzCore Preferences
 LiquidAss12Prefs_INSTALL_PATH = /Library/PreferenceBundles
 LiquidAss12Prefs_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 
