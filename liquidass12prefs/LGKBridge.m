@@ -91,4 +91,3 @@ UIControl<LGKSliderLike> *LGKMakeSlider(void) {
     Class cls = NSClassFromString(@"LGKSlider");
     return cls ? (UIControl<LGKSliderLike> *)[[cls alloc] initWithFrame:CGRectZero] : nil;
 }
-
