@@ -7,6 +7,9 @@ BUNDLE_NAME = LiquidAss12Prefs
 
 LiquidAss12Prefs_FILES = LGRootListController.m LGGlassSwitchCell.m LGGlassSliderCell.m LGKBridge.m
 LiquidAss12Prefs_FRAMEWORKS = UIKit QuartzCore
+# Preference framework symbols are provided by Settings at runtime. Resolve private
+# PSSwitchTableCell/PSSliderTableCell classes dynamically for SDK-only builds.
+LiquidAss12Prefs_LDFLAGS = -Wl,-undefined,dynamic_lookup
 LiquidAss12Prefs_INSTALL_PATH = /Library/PreferenceBundles
 LiquidAss12Prefs_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 
