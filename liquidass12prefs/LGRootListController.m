@@ -1,7 +1,6 @@
 // Settings pane. Uses PreferenceLoader. Minimal declarations of the private Preferences classes
 // so the bundle does not depend on header availability in the SDK.
 #import <UIKit/UIKit.h>
-#import <objc/runtime.h>
 #import <spawn.h>
 #import <unistd.h>
 
@@ -9,23 +8,21 @@ extern char **environ;
 
 @interface PSListController : UIViewController
 - (NSArray *)loadSpecifiersFromPlistName:(NSString *)name target:(id)target;
+- (void)setSpecifiers:(NSArray *)specifiers;
 @end
 
 @interface LGRootListController : PSListController
 @end
 
-static void *kSpecifiersKey = &kSpecifiersKey;
-
 @implementation LGRootListController
 
-// cached via an associated object so we never touch the superclass ivar directly
 - (NSArray *)specifiers {
-    NSArray *cached = objc_getAssociatedObject(self, kSpecifiersKey);
-    if (!cached) {
-        cached = [self loadSpecifiersFromPlistName:@"Root" target:self];
-        objc_setAssociatedObject(self, kSpecifiersKey, cached, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    NSArray *specs = [self valueForKey:@"_specifiers"];
+    if (!specs) {
+        specs = [self loadSpecifiersFromPlistName:@"Root" target:self];
+        [self setSpecifiers:specs];
     }
-    return cached;
+    return specs;
 }
 
 - (void)reenableMetal {
@@ -44,3 +41,4 @@ static void *kSpecifiersKey = &kSpecifiersKey;
 }
 
 @end
+
