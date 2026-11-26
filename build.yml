@@ -1,0 +1,46 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install tools
+        run: |
+          brew install ldid dpkg make
+          echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
+
+      - name: theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+      - name: sdks
+        run: |
+          curl -sL https://github.com/theos/sdks/archive/master.zip -o sdks.zip
+          unzip -q sdks.zip
+          mv sdks-master/*.sdk "$HOME/theos/sdks/"
+
+      - name: build
+        run: make clean package FINALPACKAGE=1
+
+      - name: check package contents
+        run: |
+          echo "== deb contents =="
+          dpkg-deb -c packages/*.deb
+          echo "== required files =="
+          dpkg-deb -c packages/*.deb | grep -q "Library/PreferenceLoader/Preferences/LiquidAss12Prefs.plist" || { echo "MISSING: PreferenceLoader entry"; exit 1; }
+          dpkg-deb -c packages/*.deb | grep -q "Library/PreferenceBundles/LiquidAss12Prefs.bundle/LiquidAss12Prefs" || { echo "MISSING: prefs bundle binary"; exit 1; }
+          dpkg-deb -c packages/*.deb | grep -q "MobileSubstrate/DynamicLibraries/LiquidAss12.dylib" || { echo "MISSING: tweak dylib"; exit 1; }
+          dpkg-deb -c packages/*.deb | grep -q "LGK/LGKCore.dylib" && echo "LGK dylib: included" || echo "LGK dylib: NOT included (Settings uses fallback controls, Metal glass off)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: liquidass12-deb
+          path: packages/*.deb
