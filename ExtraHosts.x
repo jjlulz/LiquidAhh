@@ -28,28 +28,17 @@ static CGFloat LGExtraRadius(UIView *view, CGFloat fallback) {
     return radius > 0.5 ? radius : fallback;
 }
 
-#pragma mark - 1. Control Center (Modules & Sliders)
+#pragma mark - Control Center (Lightweight Blur)
 
 static void LGSyncControlCenterModule(UIView *host) {
-    UIView *background = LGFindView(host, @[@"backgroundView", @"materialView", @"contentContainerView"]);
-    if (!background) {
-        for (UIView *sub in host.subviews) {
-            if ([NSStringFromClass(sub.class) containsString:@"Material"] ||
-                [NSStringFromClass(sub.class) containsString:@"Background"]) {
-                background = sub;
-                break;
-            }
-        }
-    }
+    UIView *background = LGFindView(host, @[@"backgroundView", @"materialView"]);
     if (!host.window) { LGRemoveGlass(background); return; }
-    LGDumpOnce(host, @"CCUIContentModuleContainerView");
     if (!background) return;
 
     CGFloat w = CGRectGetWidth(background.bounds);
     CGFloat h = CGRectGetHeight(background.bounds);
-    if (w < 20.0 || h < 20.0) return;
+    if (w < 36.0 || h < 36.0) return;
 
-    // Pill radius for 1x1 toggles or sliders, continuous rounded rect for larger modules
     CGFloat fallbackRadius = (MAX(w, h) <= MIN(w, h) * 1.25) ? (MIN(w, h) * 0.5) : 19.0;
     LGInstallGlass(background, @"ControlCenter", LGExtraRadius(background, fallbackRadius));
 }
@@ -61,24 +50,13 @@ static void LGSyncControlCenterModule(UIView *host) {
 %end
 %end
 
-#pragma mark - 2. Volume HUD (iOS 12 Centered HUD)
+#pragma mark - Volume HUD (iOS 12 Centered HUD)
 
 static void LGSyncVolumeHUD(UIView *host) {
-    UIView *background = LGFindView(host, @[@"backdropView", @"backgroundView", @"materialView"]);
-    if (!background) {
-        for (UIView *sub in host.subviews) {
-            if ([sub isKindOfClass:UIVisualEffectView.class] ||
-                [NSStringFromClass(sub.class) containsString:@"Backdrop"] ||
-                [NSStringFromClass(sub.class) containsString:@"Material"]) {
-                background = sub;
-                break;
-            }
-        }
-    }
-    if (!host.window) { LGRemoveGlass(background ?: host); return; }
-    LGDumpOnce(host, @"SBVolumeHUDView");
-    UIView *target = background ?: host;
-    LGInstallGlass(target, @"VolumeHUD", LGExtraRadius(target, 20.0));
+    UIView *background = LGFindView(host, @[@"backdropView", @"backgroundView"]);
+    if (!host.window) { LGRemoveGlass(background); return; }
+    if (!background) return;
+    LGInstallGlass(background, @"VolumeHUD", LGExtraRadius(background, 20.0));
 }
 
 %group VolumeHUD
@@ -88,79 +66,12 @@ static void LGSyncVolumeHUD(UIView *host) {
 %end
 %end
 
-#pragma mark - 3. Passcode Keypad (iOS 12 TPNumberPadButton)
-
-static void LGSyncPasscodeButton(UIView *host) {
-    // TPNumberPadButton on iOS 12 uses _revealingRingView or a circular subview
-    UIView *ring = LGFindView(host, @[@"revealingRingView", @"circleView", @"backgroundView"]);
-    if (!ring) {
-        for (UIView *sub in host.subviews) {
-            CGFloat w = CGRectGetWidth(sub.bounds);
-            CGFloat h = CGRectGetHeight(sub.bounds);
-            if (w >= 40.0 && fabs(w - h) < 2.0) {
-                ring = sub;
-                break;
-            }
-        }
-    }
-    if (!host.window) { LGRemoveGlass(ring); return; }
-    LGDumpOnce(host, @"TPNumberPadButton");
-    if (!ring) return;
-
-    CGFloat r = MIN(CGRectGetWidth(ring.bounds), CGRectGetHeight(ring.bounds)) * 0.5;
-    ring.layer.cornerRadius = r;
-    ring.layer.masksToBounds = YES;
-    LGInstallGlass(ring, @"Passcode", r);
-}
-
-%group Passcode
-%hook TPNumberPadButton
-- (void)didMoveToWindow { %orig; LGExtraRun((UIView *)self, LGSyncPasscodeButton); }
-- (void)layoutSubviews  { %orig; LGExtraRun((UIView *)self, LGSyncPasscodeButton); }
-%end
-%end
-
-#pragma mark - 4. Alerts (SpringBoard UIAlertController)
-
-static UIView *LGFindAlertBackdrop(UIView *root) {
-    for (UIView *sub in root.subviews) {
-        NSString *cls = NSStringFromClass(sub.class);
-        if ([cls containsString:@"Backdrop"] || [cls containsString:@"VisualEffect"] ||
-            [cls hasPrefix:@"_UIAlertControllerPhoneTVMacView"]) {
-            if (CGRectGetWidth(sub.bounds) > 100.0 && CGRectGetHeight(sub.bounds) > 50.0) {
-                return sub;
-            }
-        }
-        UIView *found = LGFindAlertBackdrop(sub);
-        if (found) return found;
-    }
-    return nil;
-}
-
-static void LGSyncAlertView(UIView *host) {
-    UIView *backdrop = LGFindAlertBackdrop(host);
-    if (!host.window) { LGRemoveGlass(backdrop); return; }
-    LGDumpOnce(host, @"_UIAlertControllerView");
-    if (!backdrop) return;
-    backdrop.layer.cornerRadius = 16.0;
-    backdrop.layer.masksToBounds = YES;
-    LGInstallGlass(backdrop, @"Alerts", 16.0);
-}
-
-%group Alerts
-%hook _UIAlertControllerView
-- (void)didMoveToWindow { %orig; LGExtraRun((UIView *)self, LGSyncAlertView); }
-- (void)layoutSubviews  { %orig; LGExtraRun((UIView *)self, LGSyncAlertView); }
-%end
-%end
-
-#pragma mark - 5. Keyboard Backdrop (UIKBBackdropView in SpringBoard)
+#pragma mark - Keyboard Backdrop
 
 static void LGSyncKeyboardBackdrop(UIView *host) {
     if (!host.window) { LGRemoveGlass(host); return; }
-    // Only apply to remote/system keyboard windows
     if (![NSStringFromClass(host.window.class) containsString:@"Keyboard"]) return;
-    LGDumpOnce(host, @"UIKBBackdropView");
+    if (CGRectGetHeight(host.bounds) < 60.0) return;
     LGInstallGlass(host, @"Keyboard", 0.0);
 }
 
@@ -177,15 +88,15 @@ static void LGSyncKeyboardBackdrop(UIView *host) {
     @autoreleasepool {
         if (![NSBundle.mainBundle.bundleIdentifier isEqualToString:@"com.apple.springboard"]) return;
         if (NSProcessInfo.processInfo.operatingSystemVersion.majorVersion != 12) return;
+        if (!LGGuardShouldLoad()) return;
         if (!LGPrefBool(@"Global.Enabled", YES)) return;
+        if (!LGGlassSupported()) return;
 
         if (NSClassFromString(@"CCUIContentModuleContainerView")) { %init(ControlCenter); }
         if (NSClassFromString(@"SBVolumeHUDView"))                { %init(VolumeHUD); }
-        if (NSClassFromString(@"TPNumberPadButton"))              { %init(Passcode); }
-        if (NSClassFromString(@"_UIAlertControllerView"))         { %init(Alerts); }
         if (NSClassFromString(@"UIKBBackdropView"))               { %init(Keyboard); }
 
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3.2 * NSEC_PER_SEC),
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3.5 * NSEC_PER_SEC),
                        dispatch_get_main_queue(), ^{
             for (UIView *host in sExtraHosts.allObjects)
                 if (host.window) [host setNeedsLayout];
