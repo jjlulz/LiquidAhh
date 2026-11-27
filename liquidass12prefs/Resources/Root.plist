@@ -45,6 +45,46 @@
 		<dict>
 			<key>cell</key><string>PSSwitchCell</string>
 			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>ControlCenter.Enabled</string>
+			<key>label</key><string>Control Center</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>VolumeHUD.Enabled</string>
+			<key>label</key><string>Volume HUD</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>Passcode.Enabled</string>
+			<key>label</key><string>Passcode keypad</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>Alerts.Enabled</string>
+			<key>label</key><string>Alerts</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>Keyboard.Enabled</string>
+			<key>label</key><string>Keyboard</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
 			<key>default</key><false/>
 			<key>defaults</key><string>com.jjlulz.liquidass12</string>
 			<key>key</key><string>Notification.Enabled</string>
@@ -86,6 +126,46 @@
 			<key>defaults</key><string>com.jjlulz.liquidass12</string>
 			<key>key</key><string>OpenFolder.Metal</string>
 			<key>label</key><string>Open folder</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>ControlCenter.Metal</string>
+			<key>label</key><string>Control Center</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>VolumeHUD.Metal</string>
+			<key>label</key><string>Volume HUD</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>Passcode.Metal</string>
+			<key>label</key><string>Passcode keypad</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>Alerts.Metal</string>
+			<key>label</key><string>Alerts</string>
+		</dict>
+		<dict>
+			<key>cell</key><string>PSSwitchCell</string>
+			<key>cellClass</key><string>LGGlassSwitchCell</string>
+			<key>default</key><true/>
+			<key>defaults</key><string>com.jjlulz.liquidass12</string>
+			<key>key</key><string>Keyboard.Metal</string>
+			<key>label</key><string>Keyboard</string>
 		</dict>
 		<dict>
 			<key>cell</key><string>PSSwitchCell</string>
