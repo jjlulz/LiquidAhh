@@ -28,7 +28,7 @@ static CGFloat LGExtraRadius(UIView *view, CGFloat fallback) {
     return radius > 0.5 ? radius : fallback;
 }
 
-#pragma mark - 1. Control Center Modules
+#pragma mark - 1. Control Center Modules (Metal)
 
 static void LGSyncControlCenterModule(UIView *host) {
     UIView *background = LGFindView(host, @[@"backgroundView", @"materialView"]);
@@ -49,7 +49,7 @@ static void LGSyncControlCenterModule(UIView *host) {
 %end
 %end
 
-#pragma mark - 2. Volume HUD (iOS 12 Centered HUD)
+#pragma mark - 2. Volume HUD (Metal)
 
 static void LGSyncVolumeHUD(UIView *host) {
     UIView *background = LGFindView(host, @[@"backdropView", @"backgroundView"]);
@@ -64,19 +64,20 @@ static void LGSyncVolumeHUD(UIView *host) {
 %end
 %end
 
-#pragma mark - 3. Passcode Keypad (Safe Chill Tint, No Subview Injection Crash)
+#pragma mark - 3. Passcode Keypad (Crash-Safe Metal on Buttons)
 
 static void LGSyncPasscodeKeypad(UIView *host) {
-    if (!LGHostEnabled(@"Passcode")) return;
     if (!host.window) return;
-    // Safely style the keypad buttons' existing background alpha/border without inserting views into TPRevealingRingView
-    for (UIView *sub in host.subviews) {
-        if ([NSStringFromClass(sub.class) containsString:@"NumberPadButton"]) {
-            sub.layer.cornerRadius = MIN(CGRectGetWidth(sub.bounds), CGRectGetHeight(sub.bounds)) * 0.5;
-            sub.layer.borderWidth = 0.75;
-            sub.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.35].CGColor;
-            sub.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.12];
-        }
+    for (UIView *btn in host.subviews) {
+        if (![NSStringFromClass(btn.class) containsString:@"NumberPadButton"]) continue;
+        // Find the circular background view inside TPNumberPadButton without touching TPRevealingRingView's layer
+        UIView *circle = LGFindView(btn, @[@"circleView", @"backgroundView"]);
+        UIView *target = circle ?: btn;
+        CGFloat side = MIN(CGRectGetWidth(target.bounds), CGRectGetHeight(target.bounds));
+        if (side < 40.0) continue;
+        target.layer.cornerRadius = side * 0.5;
+        target.layer.masksToBounds = YES;
+        LGInstallGlass(target, @"Passcode", side * 0.5);
     }
 }
 
@@ -86,7 +87,7 @@ static void LGSyncPasscodeKeypad(UIView *host) {
 %end
 %end
 
-#pragma mark - 4. Alerts (Safe viewDidAppear Hook)
+#pragma mark - 4. Alerts (Metal via viewDidAppear)
 
 static UIView *LGFindAlertBackdrop(UIView *root) {
     for (UIView *sub in root.subviews) {
@@ -120,7 +121,7 @@ static UIView *LGFindAlertBackdrop(UIView *root) {
 %end
 %end
 
-#pragma mark - 5. Keyboard Backdrop (One-Shot on Window Attach)
+#pragma mark - 5. Keyboard Backdrop (Metal, One-Shot on Window Attach)
 
 static void LGSyncKeyboardBackdrop(UIView *host) {
     if (!host.window) { LGRemoveGlass(host); return; }
