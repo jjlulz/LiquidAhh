@@ -23,24 +23,49 @@ static void LGExtraRun(UIView *host, void (*work)(UIView *)) {
     }
 }
 
-#pragma mark - 1. Control Center (MTMaterialView inside CCUIControlCenterWindow)
+#pragma mark - 1. Control Center (iOS 12 CCUIContentModuleContainerView)
 
-static void LGSyncControlCenterMaterial(UIView *mat) {
-    if (!mat.window) { LGRemoveGlass(mat); return; }
-    if (![NSStringFromClass(mat.window.class) containsString:@"ControlCenter"]) return;
-    // Skip the fullscreen background blur (width >= 300) and tiny sliders
-    CGFloat w = CGRectGetWidth(mat.bounds);
-    CGFloat h = CGRectGetHeight(mat.bounds);
-    if (w < 30.0 || h < 30.0 || w >= 300.0) return;
+static UIView *LGFindCCBackground(UIView *root) {
+    NSMutableArray<UIView *> *stack = [NSMutableArray arrayWithObject:root];
+    UIView *deepestContainer = nil;
+    while (stack.count > 0) {
+        UIView *cur = stack.firstObject;
+        [stack removeObjectAtIndex:0];
+        NSString *cls = NSStringFromClass(cur.class);
+        if ([cls isEqualToString:@"_UIBackdropView"] || [cls isEqualToString:@"MTMaterialView"]) {
+            return cur;
+        }
+        if (cur != root && CGRectGetWidth(cur.bounds) >= 50.0 && CGRectGetHeight(cur.bounds) >= 50.0) {
+            deepestContainer = cur;
+        }
+        [stack addObjectsFromArray:cur.subviews];
+    }
+    return deepestContainer;
+}
 
-    CGFloat r = mat.layer.cornerRadius > 0.5 ? mat.layer.cornerRadius : ((MAX(w, h) <= MIN(w, h) * 1.25) ? MIN(w, h) * 0.5 : 19.0);
-    LGInstallGlass(mat, @"ControlCenter", r);
+static void LGSyncControlCenterModule(UIView *host) {
+    UIView *target = LGFindCCBackground(host);
+    if (!host.window) { LGRemoveGlass(target); return; }
+    if (!target) return;
+
+    CGFloat w = CGRectGetWidth(target.bounds);
+    CGFloat h = CGRectGetHeight(target.bounds);
+    if (w < 40.0 || h < 40.0 || w >= 300.0) return;
+
+    // 1x1 circular/pill tiles vs larger 2x1 / 2x2 rounded-rect modules
+    CGFloat r = target.layer.cornerRadius > 0.5
+        ? target.layer.cornerRadius
+        : ((MAX(w, h) <= MIN(w, h) * 1.25) ? (MIN(w, h) * 0.5) : 19.0);
+
+    target.layer.cornerRadius = r;
+    target.layer.masksToBounds = YES;
+    LGInstallGlass(target, @"ControlCenter", r);
 }
 
 %group ControlCenter
-%hook MTMaterialView
-- (void)didMoveToWindow { %orig; LGExtraRun((UIView *)self, LGSyncControlCenterMaterial); }
-- (void)layoutSubviews  { %orig; LGExtraRun((UIView *)self, LGSyncControlCenterMaterial); }
+%hook CCUIContentModuleContainerView
+- (void)didMoveToWindow { %orig; LGExtraRun((UIView *)self, LGSyncControlCenterModule); }
+- (void)layoutSubviews  { %orig; LGExtraRun((UIView *)self, LGSyncControlCenterModule); }
 %end
 %end
 
@@ -69,7 +94,7 @@ static void LGSyncVolumeHUD(UIView *host) {
 %end
 %end
 
-#pragma mark - 3. Passcode Keypad (Exact 75x75 Circle UIView inside SBPasscodeNumberPadButton)
+#pragma mark - 3. Passcode Keypad (Pure Liquid Glass)
 
 static UIView *LGFindPasscodeCircle(UIView *button) {
     for (UIView *sub in button.subviews) {
@@ -88,7 +113,10 @@ static void LGSyncPasscodeButton(UIView *button) {
     UIView *circle = LGFindPasscodeCircle(button);
     if (!button.window) { LGRemoveGlass(circle); return; }
     if (!circle) return;
-    circle.alpha = 1.0; // stock alpha is 0.15; bring to 1.0 so Metal glass is visible
+
+    circle.backgroundColor = UIColor.clearColor;
+    circle.alpha = 1.0;
+
     CGFloat r = MIN(CGRectGetWidth(circle.bounds), CGRectGetHeight(circle.bounds)) * 0.5;
     circle.layer.cornerRadius = r;
     circle.layer.masksToBounds = YES;
@@ -99,6 +127,14 @@ static void LGSyncPasscodeButton(UIView *button) {
 %hook SBPasscodeNumberPadButton
 - (void)didMoveToWindow { %orig; LGExtraRun((UIView *)self, LGSyncPasscodeButton); }
 - (void)layoutSubviews  { %orig; LGExtraRun((UIView *)self, LGSyncPasscodeButton); }
+- (void)setHighlighted:(BOOL)highlighted {
+    %orig;
+    UIView *circle = LGFindPasscodeCircle((UIView *)self);
+    if (circle && LGHostEnabled(@"Passcode")) {
+        circle.backgroundColor = UIColor.clearColor;
+        circle.alpha = 1.0;
+    }
+}
 %end
 %end
 
@@ -162,11 +198,11 @@ static void LGSyncKeyboardBackdrop(UIView *host) {
         if (!LGPrefBool(@"Global.Enabled", YES)) return;
         if (!LGGlassSupported()) return;
 
-        if (NSClassFromString(@"MTMaterialView"))            { %init(ControlCenter); }
-        if (NSClassFromString(@"SBVolumeHUDView"))           { %init(VolumeHUD); }
-        if (NSClassFromString(@"SBPasscodeNumberPadButton")) { %init(Passcode); }
-        if (NSClassFromString(@"UIAlertController"))         { %init(Alerts); }
-        if (NSClassFromString(@"UIKBBackdropView"))          { %init(Keyboard); }
+        if (NSClassFromString(@"CCUIContentModuleContainerView")) { %init(ControlCenter); }
+        if (NSClassFromString(@"SBVolumeHUDView"))                { %init(VolumeHUD); }
+        if (NSClassFromString(@"SBPasscodeNumberPadButton"))      { %init(Passcode); }
+        if (NSClassFromString(@"UIAlertController"))              { %init(Alerts); }
+        if (NSClassFromString(@"UIKBBackdropView"))               { %init(Keyboard); }
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3.5 * NSEC_PER_SEC),
                        dispatch_get_main_queue(), ^{
@@ -175,4 +211,3 @@ static void LGSyncKeyboardBackdrop(UIView *host) {
         });
     }
 }
-
