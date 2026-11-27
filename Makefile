@@ -9,7 +9,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = LiquidAss12 LiquidAss12UI
 
-LiquidAss12_FILES = Tweak.x LGSupport.m LGGlass.m
+LiquidAss12_FILES = Tweak.x ExtraHosts.x LGSupport.m LGGlass.m
 LiquidAss12_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Wno-unused-function
 LiquidAss12_FRAMEWORKS = UIKit QuartzCore CoreGraphics
 
