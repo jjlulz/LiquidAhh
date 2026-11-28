@@ -5,6 +5,7 @@
 void LGLog(NSString *format, ...) NS_FORMAT_FUNCTION(1, 2);
 
 // crash-loop guard + kill switch
+BOOL LGKillSwitchPresent(void);   // /var/mobile/liquidass12.disabled
 BOOL LGGuardShouldLoad(void);
 void LGGuardMarkStable(void);
 
