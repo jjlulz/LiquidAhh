@@ -28,6 +28,10 @@ static const LGStyle kStyles[] = {
     { "OpenFolder",     18.0, 1.5, 0.0,  0.22, 0.40 },
     { "Banner",         16.0, 1.6, 1.0,  0.45, 0.50 },
     { "Notification",   16.0, 1.6, 1.0,  0.40, 0.45 },
+    { "ControlCenter",  16.0, 1.6, 1.0,  0.12, 0.50 },
+    { "Passcode",       12.0, 1.5, 0.0,  0.12, 0.55 },
+    { "VolumeHUD",      14.0, 1.6, 1.0,  0.18, 0.50 },
+    { "Keyboard",       20.0, 1.5, 1.0,  0.35, 0.35 },
 };
 
 static const LGStyle *LGStyleForPrefix(NSString *prefix) {
@@ -36,7 +40,7 @@ static const LGStyle *LGStyleForPrefix(NSString *prefix) {
     return NULL;
 }
 
-static const NSUInteger kMaxLiveGlasses = 20;   // hard cap: A8 GPU + 1 GB RAM
+static const NSUInteger kMaxLiveGlasses = 28;   // hard cap: A8 GPU + 1 GB RAM
 
 #pragma mark - safe private-API helpers
 
