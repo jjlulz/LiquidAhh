@@ -42,6 +42,10 @@ void LGLog(NSString *format, ...) {
 
 #pragma mark - guard
 
+BOOL LGKillSwitchPresent(void) {
+    return [NSFileManager.defaultManager fileExistsAtPath:kKillPath];
+}
+
 BOOL LGGuardShouldLoad(void) {
     NSFileManager *fm = NSFileManager.defaultManager;
     if ([fm fileExistsAtPath:kKillPath]) {
