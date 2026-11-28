@@ -13,6 +13,9 @@
 #import "LGSupport.h"
 #import "LGGlass.h"
 
+void LGInitHosts12(void);       // Hosts12.x
+void LGHosts12Activate(void);
+
 static NSHashTable<UIView *> *sHosts;
 static BOOL sBusy;
 
@@ -130,6 +133,7 @@ static void LGSyncPlatter(UIView *host) {
         if (NSClassFromString(@"SBFolderIconImageView"))  { %init(FolderIcon); }
         if (NSClassFromString(@"SBFolderBackgroundView")) { %init(OpenFolder); }
         if (NSClassFromString(@"PLPlatterView"))          { %init(Platter); }
+        LGInitHosts12();   // control center, passcode keypad, volume HUD
         LGLog(@"loaded on iOS %@; waiting to activate",
               NSProcessInfo.processInfo.operatingSystemVersionString);
 
@@ -140,6 +144,7 @@ static void LGSyncPlatter(UIView *host) {
             LGLog(@"active");
             for (UIView *host in sHosts.allObjects)
                 if (host.window) [host setNeedsLayout];   // re-enter the hooks, which now do real work
+            LGHosts12Activate();
         });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 12 * NSEC_PER_SEC),
                        dispatch_get_main_queue(), ^{ LGMetalMarkerClear(); });   // Metal survived its first seconds
