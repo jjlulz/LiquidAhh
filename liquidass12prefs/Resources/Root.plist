@@ -148,6 +148,20 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>cellClass</key>
+			<string>LGGlassSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.jjlulz.liquidass12</string>
+			<key>key</key>
+			<string>YourKeyName.Enabled</string>
+			<key>label</key>
+			<string>Your Switch Label</string>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
 			<string>Real refraction rendered with Metal. Hosts with Metal off use the lighter blur. If SpringBoard goes down soon after Metal starts, Metal switches itself off until you re-enable it here.</string>
