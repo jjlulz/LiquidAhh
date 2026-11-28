@@ -1,8 +1,8 @@
 Package: com.jjlulz.liquidass12
 Name: Liquid (Gl)ass 12
-Version: 0.01b
+Version: 0.04b
 Architecture: iphoneos-arm
-Description: Glass-style blur for the dock, folders, banners, passcode tiles, keyboard, alerts, and volume hud on iOS 12 (port of dylv's Liquid (Gl)ass)
+Description: Glass-style blur for the dock, folders and banners and some other stuff on iOS 12 (port of dylv's Liquid (Gl)ass)
 Maintainer: jjlulz
 Author: jjlulz (iOS 12 port), dylv (original tweak)
 Section: Tweaks
