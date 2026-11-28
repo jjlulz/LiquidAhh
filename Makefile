@@ -7,15 +7,16 @@ INSTALL_TARGET_PROCESSES = SpringBoard
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = LiquidAss12 LiquidAss12UI
+TWEAK_NAME = LiquidAss12 LiquidAss12KB
 
-LiquidAss12_FILES = Tweak.x LGSupport.m LGGlass.m
+LiquidAss12_FILES = Tweak.x Hosts12.x LGSupport.m LGGlass.m
 LiquidAss12_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Wno-unused-function
 LiquidAss12_FRAMEWORKS = UIKit QuartzCore CoreGraphics
 
-LiquidAss12UI_FILES = UIControls.x liquidass12prefs/LGKBridge.m
-LiquidAss12UI_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Wno-unused-function
-LiquidAss12UI_FRAMEWORKS = UIKit Foundation
+# keyboard glass runs inside apps, so it is its own dylib (filter: com.apple.UIKit)
+LiquidAss12KB_FILES = Keyboard.x LGSupport.m LGGlass.m
+LiquidAss12KB_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Wno-unused-function
+LiquidAss12KB_FRAMEWORKS = UIKit QuartzCore CoreGraphics
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
