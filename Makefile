@@ -9,9 +9,12 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = LiquidAss12 LiquidAss12KB
 
-LiquidAss12_FILES = Tweak.x Hosts12.x LGSupport.m LGGlass.m
-LiquidAss12_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Wno-unused-function
-LiquidAss12_FRAMEWORKS = UIKit QuartzCore CoreGraphics
+TWEAK_NAME = LiquidAss12 LiquidAss12KB LiquidAss12UI
+
+# system-wide LiquidGlassKit switches/sliders (runs inside apps + Settings, filter: com.apple.UIKit)
+LiquidAss12UI_FILES = UISwitchSlider.x LGSupport.m
+LiquidAss12UI_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Wno-unused-function
+LiquidAss12UI_FRAMEWORKS = UIKit
 
 # keyboard glass runs inside apps, so it is its own dylib (filter: com.apple.UIKit)
 LiquidAss12KB_FILES = Keyboard.x LGSupport.m LGGlass.m
